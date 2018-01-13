@@ -1,5 +1,6 @@
 import itertools
 import math
+import json
 from PIL import (Image,
                  ImageDraw)
 
@@ -65,17 +66,26 @@ lower_right_coords = [(x + COLOR_BOX_X,
                                for x in upper_left_xs \
                                for y in upper_left_ys]
 coords = [list(c) for c in zip(upper_left_coords, lower_right_coords)]
+
+# Break the colorspace into however many images
+# it will take to display them at the given color box size
 boxes_per_image = len(coords)
+# for each image, the colors that will be displayed
 colors_for_images = [colors[i:i+boxes_per_image] \
                      for i in range(0, len(colors), boxes_per_image)] 
-
-for idx, colors in enumerate(colors_for_images):
+# draw the images
+for idx, img_colors in enumerate(colors_for_images):
     image = Image.new('RGB', (IMAGE_WIDTH, IMAGE_HEIGHT))
     draw = ImageDraw.Draw(image)
     
     draw_guides(draw)
 
-    for coord, color in zip(coords, colors):
+    for coord, color in zip(coords, img_colors):
         draw.rectangle(coord, fill=color)
 
-    image.save("./out/test_img_" + str(idx) + ".bmp")
+    image.save("./out/img/test_img_" + str(idx) + ".bmp")
+
+# write the ground truth colors per image to json
+color_json = open("out/colors.json", "w")
+color_json.write(json.dumps(colors_for_images))
+color_json.close()
